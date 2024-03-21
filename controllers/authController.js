@@ -1,5 +1,6 @@
 import { User } from "../models/userModel.js";
 import { comparePassword, hashPassword } from "../helpers/authHelper.js";
+import jwt from "jsonwebtoken";
 
 export const registerController = async (req, res) => {
   try {
@@ -61,11 +62,21 @@ export const loginController = async (req, res) => {
         .status(200)
         .send({ success: false, message: "Incorrect password" });
     }
+    // generating token
+    const token = await jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
-    return res.status(201).send({
+    return res.status(200).send({
       success: true,
       message: "Login successful",
-      user,
+      user: {
+        id: user._id,
+        email: user.email,
+        fName: user.fName,
+        role: user.role,
+      },
+      token,
     });
   } catch (error) {
     console.log(`Error in loginController - ${error}`);
@@ -73,4 +84,7 @@ export const loginController = async (req, res) => {
       .status(500)
       .send({ success: false, message: "Error in loginController", error });
   }
+};
+export const testController = async (req, res) => {
+  res.send({ success: true, message: "test controller accessed" });
 };
